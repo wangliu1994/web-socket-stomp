@@ -17,9 +17,9 @@ import javax.annotation.Resource;
  * @desc
  */
 @RestController
-@RequestMapping("/webSocket")
+@RequestMapping("/rest")
 @Slf4j
-public class WebSocketController {
+public class TestRestController {
 
     @Resource
     private SimpMessagingTemplate simpMessagingTemplate;

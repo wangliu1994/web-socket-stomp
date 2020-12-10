@@ -14,6 +14,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.util.Map;
@@ -79,10 +80,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .keepAliveSeconds(60);
         registration.interceptors(new ChannelInterceptor(){
             @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
                 Map nativeHeadersMap = (Map) message.getHeaders().get("nativeHeaders");
-                log.info(nativeHeadersMap.toString());
-                return null;
+                if(nativeHeadersMap != null){
+                    log.info(nativeHeadersMap.toString());
+                }
             }
         });
     }
@@ -95,10 +97,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.taskExecutor().corePoolSize(4).maxPoolSize(8);
         registration.interceptors(new ChannelInterceptor(){
             @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                Map nativeHeadersMap = (Map) message.getHeaders().get("nativeHeaders");
-                log.info(nativeHeadersMap.toString());
-                return null;
+            public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+                byte[] bytes = (byte[]) message.getPayload();
+                BASE64Encoder enc=new BASE64Encoder();
+                String msg=enc.encode(bytes);
+                if(msg != null) {
+                    log.info(msg);
+                }
             }
         });
     }
