@@ -29,6 +29,9 @@ public class TestSendController {
      *
      * 发送
      *  ["SEND\ndestination:/topic/message\ncontent-length:22\n\n{\"name\":\"winnie-test\"}\u0000"]
+     *  ["SEND\ndestination:/topic/message1\ncontent-length:22\n\n{\"name\":\"winnie-test\"}\u0000"]
+     *  ["SEND\ndestination:/topic/message2\ncontent-length:22\n\n{\"name\":\"winnie-test\"}\u0000"]
+     *  ["SEND\ndestination:/topic/userMessage\ncontent-length:22\n\n{\"name\":\"winnie-test\"}\u0000"]
      */
     @MessageMapping("/message")
     @SendTo("/topic/test")
@@ -54,6 +57,31 @@ public class TestSendController {
         Thread.sleep(1000);
         String res = JSON.toJSONString(message);
         log.info(res);
+        return res;
+    }
+
+    @MessageMapping("/message2")
+    public String message2(Object message) throws InterruptedException {
+        // simulated delay
+        Thread.sleep(1000);
+        String res = JSON.toJSONString(message);
+        log.info(res);
+        simpMessagingTemplate.convertAndSend("/topic/test", res);
+        return res;
+    }
+
+    /**
+     * ["SUBSCRIBE\nid:sub-0\ndestination:/user/admin/test\n\n\u0000"]
+     *
+     * ["SEND\ndestination:/topic/userMessage\ncontent-length:22\n\n{\"name\":\"winnie-test\"}\u0000"]
+     */
+    @MessageMapping("/userMessage")
+    public String userMessage(Object message) throws InterruptedException {
+        // simulated delay
+        Thread.sleep(1000);
+        String res = JSON.toJSONString(message);
+        log.info(res);
+        simpMessagingTemplate.convertAndSendToUser("admin","/test", res);
         return res;
     }
 }
