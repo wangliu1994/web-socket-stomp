@@ -14,13 +14,13 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
-import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.util.Map;
 
 /**
  * 参考文档 https://zhuanlan.zhihu.com/p/58311007
+ *
  * @author winnie [wangliu023@qq.com]
  * @date 2020/10/28
  */
@@ -36,7 +36,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         //注册一个 Stomp 的节点(endpoint),并指定使用 SockJS 协议。
         //.setAllowedOrigins("*")解决跨域问题
         registry.addEndpoint("/endpointWinnie").setAllowedOrigins("*")
-                .withSockJS().setInterceptors(new HttpSessionHandshakeInterceptor(){
+                .withSockJS().setInterceptors(new HttpSessionHandshakeInterceptor() {
             @Override
             public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                            WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
@@ -78,11 +78,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .maxPoolSize(8)
                 //线程活动时间
                 .keepAliveSeconds(60);
-        registration.interceptors(new ChannelInterceptor(){
+        registration.interceptors(new ChannelInterceptor() {
             @Override
             public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
                 Map nativeHeadersMap = (Map) message.getHeaders().get("nativeHeaders");
-                if(nativeHeadersMap != null){
+                if (nativeHeadersMap != null) {
                     log.info(nativeHeadersMap.toString());
                 }
             }
@@ -95,13 +95,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientOutboundChannel(ChannelRegistration registration) {
         registration.taskExecutor().corePoolSize(4).maxPoolSize(8);
-        registration.interceptors(new ChannelInterceptor(){
+        registration.interceptors(new ChannelInterceptor() {
+            @Override
+            public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                byte[] bytes = (byte[]) message.getPayload();
+                if(bytes != null) {
+                    String msg = new String(bytes);
+                    log.info(msg);
+                }
+                return message;
+            }
+
             @Override
             public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
                 byte[] bytes = (byte[]) message.getPayload();
-                BASE64Encoder enc=new BASE64Encoder();
-                String msg=enc.encode(bytes);
-                if(msg != null) {
+                if(bytes != null) {
+                    String msg = new String(bytes);
                     log.info(msg);
                 }
             }
